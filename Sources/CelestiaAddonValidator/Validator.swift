@@ -340,16 +340,16 @@ public final class Validator {
                 if quotedStrings.count >= 2 {
                     // Second-to-last quoted string: object names (colon-separated)
                     // Last quoted string: parent path
-                    let names = quotedStrings[quotedStrings.count - 2].split(separator: ":").map { String($0) }
                     let parentPath = quotedStrings[quotedStrings.count - 1]
-                    for name in names {
+                    if let name = quotedStrings[quotedStrings.count - 2].split(separator: ":").first {
                         let fullPath = parentPath.isEmpty ? name : "\(parentPath)/\(name)"
-                        results.append(fullPath)
+                        results.append(String(fullPath))
                     }
                 } else if quotedStrings.count == 1 {
                     // No parent path, just object names
-                    let names = quotedStrings[0].split(separator: ":").map { String($0) }
-                    results.append(contentsOf: names)
+                    if let name = quotedStrings[0].split(separator: ":").first {
+                        results.append(String(name))
+                    }
                 }
             }
 
