@@ -41,7 +41,7 @@ jobs:
           fi
           id=${file##pending/}
           .build/debug/CelestiaAddonValidatorApp --api-token 377f2dcc6bf5c3a841914799d07a4b3e6f82a6e2a30b41697e246933eef06370 --record-id $id
-        done
+        done 2>&1 | tee /tmp/validate_appleid.txt
 
     - name: Validate
       if: github.event_name == 'pull_request' && always()
@@ -51,7 +51,26 @@ jobs:
             continue
           fi
           .build/debug/CelestiaAddonValidatorApp --api-token 377f2dcc6bf5c3a841914799d07a4b3e6f82a6e2a30b41697e246933eef06370 --zip-file-path $file
-        done
+        done 2>&1 | tee /tmp/validate_zip.txt
+
+    - name: Post Validation Results
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          let appleidOutput = '';
+          let zipOutput = '';
+          try { appleidOutput = fs.readFileSync('/tmp/validate_appleid.txt', 'utf8'); } catch (e) { appleidOutput = 'No output'; }
+          try { zipOutput = fs.readFileSync('/tmp/validate_zip.txt', 'utf8'); } catch (e) { zipOutput = 'No output'; }
+          const body = `## Validation Results\n\n### Validate (Apple ID)\n\`\`\`\n${appleidOutput}\n\`\`\`\n\n### Validate (Zip)\n\`\`\`\n${zipOutput}\n\`\`\``;
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: body
+          });
 
     - name: Upload (Apple ID)
       if: github.event_name != 'pull_request' && always()
