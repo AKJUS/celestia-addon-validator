@@ -234,7 +234,7 @@ public final class Validator {
             categoryReference = nil
         }
 
-        guard type == nil else {
+        guard type == nil || type == "none" else {
             throw ValidatorError.changeTypeOfExisting
         }
 
@@ -512,7 +512,7 @@ public final class Validator {
             throw ValidatorError.missingFields(fieldName: "id_requirement")
         }
 
-        guard type == nil else {
+        guard type == nil || type == "none" else {
             throw ValidatorError.changeTypeOfExisting
         }
 
