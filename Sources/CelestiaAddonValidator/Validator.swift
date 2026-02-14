@@ -100,6 +100,9 @@ public final class Validator {
                 throw ValidatorError.fileManager
             }
             if contents.count == 1 {
+                if contents.first == "id_requirement.txt" {
+                    break
+                }
                 var isDir: ObjCBool = false
                 // Real content might be one level inside the zip
                 let potentialPath = (basePath as NSString).appendingPathComponent(contents[0])
