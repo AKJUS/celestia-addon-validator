@@ -35,6 +35,7 @@ jobs:
     - name: Validate (Apple ID)
       if: github.event_name == 'pull_request' && always()
       run: |
+        set -o pipefail
         for file in `git diff --name-only --diff-filter=A origin/$GITHUB_BASE_REF`; do
           if [[ "$file" != pending/* ]]; then
             continue
@@ -46,6 +47,7 @@ jobs:
     - name: Validate
       if: github.event_name == 'pull_request' && always()
       run: |
+        set -o pipefail
         for file in `git diff --name-only --diff-filter=A origin/$GITHUB_BASE_REF`; do
           if [[ "$file" != pending_zip/* ]]; then
             continue
