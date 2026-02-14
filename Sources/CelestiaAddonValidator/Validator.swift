@@ -18,6 +18,8 @@ public enum ValidatorError: Error {
     case incorrectRecordFieldType
     case network
     case badDemoObject(supportedPaths: [String])
+    case badType(type: String)
+    case changeTypeOfExisting
 }
 
 extension ValidatorError: LocalizedError {
@@ -47,6 +49,10 @@ extension ValidatorError: LocalizedError {
             return "Network error"
         case let .badDemoObject(supportedPaths):
             return "Bad demo object name, should be one of \(supportedPaths))"
+        case let .badType(type):
+            return "Type should be either script or addon, got \(type)"
+        case .changeTypeOfExisting:
+            return "Cannot change type of an existing item"
         }
     }
 }
@@ -209,6 +215,9 @@ public final class Validator {
             guard let addonURL else {
                 throw ValidatorError.missingFields(fieldName: "addon.zip")
             }
+            guard let type, ["addon", "script"].contains(type) else {
+                throw ValidatorError.badType(type: type ?? "none")
+            }
             let (relatedObjectPaths, needsUpdateRelatedObjectPaths) = try await validateAddonContents(location: .local(url: addonURL))
             if let demoObjectName, !relatedObjectPaths.contains(demoObjectName) {
                 throw ValidatorError.badDemoObject(supportedPaths: relatedObjectPaths)
@@ -225,6 +234,10 @@ public final class Validator {
             categoryReference = nil
         }
 
+        guard type == nil else {
+            throw ValidatorError.changeTypeOfExisting
+        }
+
         let relatedObjectPaths: [String]
         let needsUpdateRelatedObjectPaths: Bool
         if let addonURL {
@@ -235,7 +248,7 @@ public final class Validator {
         if let demoObjectName, !relatedObjectPaths.contains(demoObjectName) {
             throw ValidatorError.badDemoObject(supportedPaths: relatedObjectPaths)
         }
-        return .update(item: UpdateItem(title: title, category: categoryReference, id: CKRecord.ID(recordName: idRequirement), authors: authors, description: description, demoObjectName: demoObjectName, releaseDate: releaseDate, lastUpdateDate: lastUpdateDate, coverImage: coverImageURL, addon: addonURL, richDescription: richDescription, type: type, mainScriptName: mainScriptName, removeRichDescription: removeRichDescription, relatedObjectPaths: needsUpdateRelatedObjectPaths ? relatedObjectPaths : nil))
+        return .update(item: UpdateItem(title: title, category: categoryReference, id: CKRecord.ID(recordName: idRequirement), authors: authors, description: description, demoObjectName: demoObjectName, releaseDate: releaseDate, lastUpdateDate: lastUpdateDate, coverImage: coverImageURL, addon: addonURL, richDescription: richDescription, mainScriptName: mainScriptName, removeRichDescription: removeRichDescription, relatedObjectPaths: needsUpdateRelatedObjectPaths ? relatedObjectPaths : nil))
     }
 
     private enum AddonLocation {
@@ -486,6 +499,9 @@ public final class Validator {
             guard let addonURL else {
                 throw ValidatorError.missingFields(fieldName: "addon")
             }
+            guard let type, ["addon", "script"].contains(type) else {
+                throw ValidatorError.badType(type: type ?? "none")
+            }
             let (relatedObjectPaths, needsUpdateRelatedObjectPaths) = try await validateAddonContents(location: .local(url: addonURL))
             if let demoObjectName, !relatedObjectPaths.contains(demoObjectName) {
                 throw ValidatorError.badDemoObject(supportedPaths: relatedObjectPaths)
@@ -494,6 +510,10 @@ public final class Validator {
         }
         guard let idRequirement else {
             throw ValidatorError.missingFields(fieldName: "id_requirement")
+        }
+
+        guard type == nil else {
+            throw ValidatorError.changeTypeOfExisting
         }
 
         let relatedObjectPaths: [String]
@@ -508,7 +528,7 @@ public final class Validator {
             throw ValidatorError.badDemoObject(supportedPaths: relatedObjectPaths)
         }
 
-        return .update(item: UpdateItem(title: title, category: category, id: CKRecord.ID(recordName: idRequirement), authors: authors, description: description, demoObjectName: demoObjectName, releaseDate: releaseDate, lastUpdateDate: lastUpdateDate, coverImage: coverImageURL, addon: addonURL, richDescription: richDescription, type: type, mainScriptName: mainScriptName, removeRichDescription: removeRichDescription, relatedObjectPaths: needsUpdateRelatedObjectPaths ? relatedObjectPaths : nil))
+        return .update(item: UpdateItem(title: title, category: category, id: CKRecord.ID(recordName: idRequirement), authors: authors, description: description, demoObjectName: demoObjectName, releaseDate: releaseDate, lastUpdateDate: lastUpdateDate, coverImage: coverImageURL, addon: addonURL, richDescription: richDescription, mainScriptName: mainScriptName, removeRichDescription: removeRichDescription, relatedObjectPaths: needsUpdateRelatedObjectPaths ? relatedObjectPaths : nil))
     }
 }
 

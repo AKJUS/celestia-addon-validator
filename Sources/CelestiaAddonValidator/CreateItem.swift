@@ -13,7 +13,7 @@ public struct CreateItem {
     let coverImage: URL
     let addon: URL
     let richDescription: RichDescription?
-    let type: String?
+    let type: String
     let mainScriptName: String?
     let relatedObjectPaths: [String]?
 }

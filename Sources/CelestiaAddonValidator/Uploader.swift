@@ -194,9 +194,6 @@ public final class Uploader {
         if let localAddonURL {
             record["item"] = CKAsset(fileURL: localAddonURL)
         }
-        if let type = item.type {
-            record["type"] = type
-        }
         if let mainScriptName = item.mainScriptName {
             record["mainScriptName"] = mainScriptName
         }

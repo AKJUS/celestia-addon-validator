@@ -13,7 +13,6 @@ public struct UpdateItem {
     let coverImage: URL?
     let addon: URL?
     let richDescription: RichDescription?
-    let type: String?
     let mainScriptName: String?
     let removeRichDescription: Bool
     let relatedObjectPaths: [String]?
