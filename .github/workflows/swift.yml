@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: macos-15
+    permissions:
+      pull-requests: write
+      issues: write
     steps:
     - uses: actions/checkout@v3
       if: github.event_name != 'pull_request'
