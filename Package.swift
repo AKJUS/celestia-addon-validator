@@ -16,11 +16,15 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "CelestiaCatalogParser"
+        ),
+        .target(
             name: "CelestiaAddonValidator",
             dependencies: [
                 .product(name: "OpenCloudKit", package: "OpenCloudKit"),
                 .product(name: "MWRequest", package: "MWRequest"),
                 .product(name: "ZIPFoundation", package: "ZIPFoundation"),
+                .target(name: "CelestiaCatalogParser"),
             ]
         ),
         .executableTarget(
@@ -29,6 +33,13 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "OpenCloudKit", package: "OpenCloudKit"),
                 .target(name: "CelestiaAddonValidator")
+            ]
+        ),
+        .executableTarget(
+            name: "CelestiaCatalogParserApp",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .target(name: "CelestiaCatalogParser"),
             ]
         ),
     ]

@@ -4,6 +4,7 @@ import FoundationNetworking
 #endif
 import OpenCloudKit
 import ZIPFoundation
+import CelestiaCatalogParser
 
 public enum ValidatorError: Error {
     case noIDOrIncorrectIDProvidedForRemoval
@@ -48,7 +49,7 @@ extension ValidatorError: LocalizedError {
         case .network:
             return "Network error"
         case let .badDemoObject(supportedPaths):
-            return "Bad demo object name, should be one of \(supportedPaths))"
+            return "Bad demo object name, should be one of \(supportedPaths)"
         case let .badType(type):
             return "Type should be either script or addon, got \(type)"
         case .changeTypeOfExisting:
@@ -321,78 +322,10 @@ public final class Validator {
                   let content = String(data: data, encoding: .utf8) else {
                 continue
             }
-            objectPaths.append(contentsOf: extractObjectPaths(from: content))
+            objectPaths.append(contentsOf: CatalogObjectPathExtractor.extractObjectPaths(from: content).objectPaths)
         }
         let filtered = Array(Set(objectPaths))
         return (filtered, filtered.count < 50)
-    }
-
-    private func extractObjectPaths(from content: String) -> [String] {
-        var results = [String]()
-        var braceDepth = 0
-
-        for line in content.components(separatedBy: .newlines) {
-            // Strip comments: remove everything from the first '#' onward
-            let effectiveLine: String
-            if let commentIndex = line.firstIndex(of: "#") {
-                effectiveLine = String(line[line.startIndex..<commentIndex])
-            } else {
-                effectiveLine = line
-            }
-
-            let trimmed = effectiveLine.trimmingCharacters(in: .whitespaces)
-            if trimmed.isEmpty {
-                continue
-            }
-
-            // Count braces in this line to track depth
-            let openCount = trimmed.filter({ $0 == "{" }).count
-            let closeCount = trimmed.filter({ $0 == "}" }).count
-
-            if braceDepth == 0 {
-                // Extract quoted strings at the top level
-                let quotedStrings = extractQuotedStrings(from: trimmed)
-                if quotedStrings.count >= 2 {
-                    // Second-to-last quoted string: object names (colon-separated)
-                    // Last quoted string: parent path
-                    let parentPath = quotedStrings[quotedStrings.count - 1]
-                    if let name = quotedStrings[quotedStrings.count - 2].split(separator: ":").first {
-                        let fullPath = parentPath.isEmpty ? name : "\(parentPath)/\(name)"
-                        results.append(String(fullPath))
-                    }
-                } else if quotedStrings.count == 1 {
-                    // No parent path, just object names
-                    if let name = quotedStrings[0].split(separator: ":").first {
-                        results.append(String(name))
-                    }
-                }
-            }
-
-            braceDepth += openCount - closeCount
-            if braceDepth < 0 { braceDepth = 0 }
-        }
-
-        return results
-    }
-
-    private func extractQuotedStrings(from text: String) -> [String] {
-        var results = [String]()
-        var inQuote = false
-        var current = ""
-
-        for char in text {
-            if char == "\"" {
-                if inQuote {
-                    results.append(current)
-                    current = ""
-                }
-                inQuote.toggle()
-            } else if inQuote {
-                current.append(char)
-            }
-        }
-
-        return results
     }
 
     public func validate(record: CKRecord) async throws -> ItemOperation {
