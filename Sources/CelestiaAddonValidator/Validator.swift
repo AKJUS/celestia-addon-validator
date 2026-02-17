@@ -48,7 +48,7 @@ extension ValidatorError: LocalizedError {
         case .network:
             return "Network error"
         case let .badDemoObject(supportedPaths):
-            return "Bad demo object name, should be one of \(supportedPaths))"
+            return "Bad demo object name, should be one of \(supportedPaths)"
         case let .badType(type):
             return "Type should be either script or addon, got \(type)"
         case .changeTypeOfExisting:
@@ -350,6 +350,18 @@ public final class Validator {
             let closeCount = trimmed.filter({ $0 == "}" }).count
 
             if braceDepth == 0 {
+                // AltSurface "SurfaceName" "ObjectPath": ignore the surface
+                // label (first quoted string), extract only the object path (last)
+                if trimmed.hasPrefix("AltSurface") {
+                    let quotedStrings = extractQuotedStrings(from: trimmed)
+                    if quotedStrings.count >= 2 {
+                        results.append(quotedStrings[quotedStrings.count - 1])
+                    }
+                    braceDepth += openCount - closeCount
+                    if braceDepth < 0 { braceDepth = 0 }
+                    continue
+                }
+
                 // Extract quoted strings at the top level
                 let quotedStrings = extractQuotedStrings(from: trimmed)
                 if quotedStrings.count >= 2 {
